@@ -40,3 +40,48 @@ document.getElementById("checkStatus").addEventListener("click", async () => {
         resultElement.textContent = `Error: ${error.message}`;
     }
 });
+
+
+
+const uuid = "ef01b4bc-4101-479b-9b24-d10b7d370ada"; // UUID to track
+
+// Function to check player status
+async function checkPlayerStatus() {
+    const resultElement = document.getElementById("result");
+
+    try {
+        resultElement.textContent = `Checking status for UUID ${uuid}...`;
+
+        // Step 1: Check Hypixel Status using UUID
+        const hypixelResponse = await fetch(`https://api.hypixel.net/status?key=${apiKey}&uuid=${uuid}`);
+        if (!hypixelResponse.ok) throw new Error("Failed to fetch Hypixel status!");
+        const hypixelData = await hypixelResponse.json();
+
+        if (hypixelData.session.online) {
+            resultElement.textContent = `Player with UUID ${uuid} is online! Sending notification...`;
+
+            // Step 2: Send Discord Webhook
+            await fetch(webhookUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    content: `Player with UUID **${uuid}** is online!`
+                })
+            });
+
+            resultElement.textContent = `Player with UUID ${uuid} is online! Notification sent.`;
+        } else {
+            resultElement.textContent = `Player with UUID ${uuid} is offline.`;
+        }
+    } catch (error) {
+        resultElement.textContent = `Error: ${error.message}`;
+    }
+}
+
+// Automatically check every minute (60000 ms)
+setInterval(checkPlayerStatus, 60000);
+
+// Immediately check when the script starts
+checkPlayerStatus();
